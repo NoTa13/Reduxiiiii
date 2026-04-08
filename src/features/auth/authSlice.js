@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+// Middleware для входа
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (data, { rejectWithValue }) => {
@@ -11,6 +12,18 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Middleware для регистрации
+export const registerUser = createAsyncThunk(
+  'auth/register',
+  async (userData, { rejectWithValue }) => {
+    if (userData.login.length < 2) {
+      return rejectWithValue("Имя слишком короткое!");
+    }
+    // Возвращаем данные как "успех"
+    return { name: userData.login, token: 'new-user-token' };
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: { user: null, error: null },
@@ -19,11 +32,20 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Логика для ВХОДА
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user = action.payload;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      // Логика для РЕГИСТРАЦИИ (чтобы кнопка заработала)
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.user = action.payload; // Записываем юзера, и App.jsx его увидит
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
         state.error = action.payload;
       });
   }
